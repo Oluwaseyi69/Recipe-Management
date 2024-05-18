@@ -10,10 +10,9 @@ const userSchema = new mongoose.Schema({
     unique:true
   }, 
   password: {
-    type: String,
-    unique: true
+    type: String
   },
-  //  timestamps: true
+
 });
 
 const User = mongoose.model('User', userSchema)
