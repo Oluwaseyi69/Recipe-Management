@@ -150,30 +150,25 @@ app.put('/updateRecipe/:id', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Find the recipe by id
     const recipe = await Recipe.findById(id);
     if (!recipe) {
       return res.status(404).json({ error: 'Recipe not found' });
     }
 
-    // Check if the user is authorized to update the recipe
     if (recipe.userId.toString() !== user.id.toString()) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Update the recipe fields if they are provided
     if (recipeName) recipe.recipeName = recipeName;
     if (description) recipe.description = description;
     if (instructions) recipe.instructions = instructions;
     if (category) recipe.category = category;
     if (Array.isArray(tags)) recipe.tags = tags;
 
-    // Update ingredients without validation
     if (Array.isArray(ingredientsName)) {
       recipe.ingredients = ingredientsName;
     }
 
-    // Save the updated recipe
     const updatedRecipe = await recipe.save();
 
     res.status(200).json({
@@ -200,6 +195,36 @@ app.delete('/deleteRecipes/:id', verifyToken, async (req, res) => {
     res.status(204).json({message: "Successfully deleted"}); 
   } catch (error) {
     console.error('Error deleting recipe:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/searchRecipes', async (req, res) => {
+  try {
+    const { ingredientsName, tags, category } = req.query;
+
+    // Build the search query
+    const searchQuery = {};
+
+    if (ingredientsName) {
+      searchQuery.ingredientsName = { $in: ingredientsName.split(',') };
+    }
+    if (tags) {
+      searchQuery.tags = { $in: tags.split(',') };
+    }
+    if (category) {
+      searchQuery.category = category;
+    }
+
+    const recipes = await Recipe.find(searchQuery);
+
+    if (recipes.length === 0) {
+      return res.status(404).json({ message: 'No recipes found' });
+    }
+
+    res.status(200).json(recipes);
+  } catch (error) {
+    console.error('Error searching for recipes:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
