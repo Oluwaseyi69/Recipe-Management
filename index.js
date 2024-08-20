@@ -7,6 +7,8 @@ const User = require('./models/User.Models');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const Recipe = require('./models/recipe.Models');
+const session = require('express-session');
+
 
 
 const PORT = process.env.PORT;
@@ -22,13 +24,21 @@ app.get('/', (req, res)=>{
   res.send("Hello from updated API")
 })
 
-mongoose.connect(`mongodb+srv://${USERNAME}:${PASSWORD}@backendbd.xrticny.mongodb.net/OnlineRecipe?retryWrites=true&w=majority&appName=BackendBd`)
+// mongoose.connect(`mongodb+srv://${USERNAME}:${PASSWORD}@backendbd.xrticny.mongodb.net/OnlineRecipe?retryWrites=true&w=majority&appName=BackendBd`)
+// .then(()=>{
+//   console.log("Connected to Database");
+// })
+// .catch(()=>{
+//   console.log("Connection Failed")
+// })
+mongoose.connect('mongodb://localhost:27017/Recipe-Manager')
 .then(()=>{
   console.log("Connected to Database");
 })
 .catch(()=>{
   console.log("Connection Failed")
 })
+
 
 
 app.use(express.json());
@@ -108,6 +118,21 @@ const verifyToken = (req, res, next) => {
     next();
   });
 };
+
+app.get('/logut', (req, res) => {
+  try {
+       res.clearCookie(token); 
+       res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Error during logout:', error);
+    res.status(500).json({   
+ error: 'Logout failed' });
+  }
+  // res.clearCookie('token');
+  // res.status(200).json({ message: 'Logout successful' });
+});
+
+
 app.post('/addRecipes', verifyToken, async (req, res) => {
   try {
     const username = req.username;
